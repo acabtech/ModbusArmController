@@ -10,6 +10,8 @@ RelayManager relayMgr;
 BME280Reader sensor;
 ModbusHandler modbus(&servoMgr, &relayMgr, &sensor);
 
+unsigned long lastBlinkTime = 0;
+bool ledState = false;
 void setup() {
     Serial.begin(115200);
     while (!Serial) {
@@ -31,10 +33,17 @@ void setup() {
     }
 
     Serial.println("Initialization complete.");
+    pinMode(LED_BUILTIN, OUTPUT);
 }
 
 void loop() {
     modbus.task();
-    // Additional non-blocking tasks can be added here if needed
-    delay(10);  // Small delay to prevent overwhelming the loop
+
+    if (millis() - lastBlinkTime >= 100) {
+        lastBlinkTime = millis();
+        ledState = !ledState;
+        digitalWrite(LED_BUILTIN, ledState);
+    }
+
+    delay(10);  //100Hz loop rate
 }
