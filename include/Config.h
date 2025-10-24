@@ -6,6 +6,7 @@
 #define MODBUS_UART_RX_PIN 1
 #define MODBUS_BAUD_RATE 9600
 #define MODBUS_SLAVE_ID 1
+#define MODBUS_DE_PIN 2
 
 // I2C Configuration for BME280
 #define BME280_SDA_PIN 4

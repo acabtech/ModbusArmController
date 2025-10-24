@@ -1,8 +1,11 @@
 #include "ModbusHandler.h"
 #include <Arduino.h>
 
-ModbusHandler::ModbusHandler(ServoManager* sm, RelayManager* rm, BME280Reader* sr) 
+ModbusHandler* ModbusHandler::instance = nullptr;
+
+ModbusHandler::ModbusHandler(ServoManager* sm, RelayManager* rm, BME280Reader* sr)
     : servoMgr(sm), relayMgr(rm), sensor(sr), lastSensorRead(0), initialized(false) {
+    instance = this;
     // Initialize buffers
     for (int i = 0; i < 20; i++) {
         holdingRegs[i] = 0;
@@ -16,10 +19,36 @@ ModbusHandler::~ModbusHandler() {
 }
 
 bool ModbusHandler::init() {
-    Serial1.begin(MODBUS_BAUD_RATE, SERIAL_8N1, MODBUS_UART_RX_PIN, MODBUS_UART_TX_PIN);
-    slave.begin(MODBUS_SLAVE_ID, Serial1);
-    slave.addHreg(0, 20);  // Add 20 holding registers
-    slave.addCoil(0, 16);  // Add 16 coils
+    Serial1.begin(MODBUS_BAUD_RATE);
+    slave.begin(&Serial1, MODBUS_DE_PIN, true);
+    slave.slave(MODBUS_SLAVE_ID);
+    slave.addReg(COIL(0), (uint16_t)0, (uint16_t)16);
+    slave.addReg(HREG(0), (uint16_t)0, (uint16_t)20);
+
+    // Callbacks for writes to relays and servos
+    slave.onSet(COIL(0), [](TRegister* reg, uint16_t val) -> uint16_t {
+        bool state = val != 0;
+        instance->relayMgr->setRelay(reg->address.address, state);
+        return val;
+    }, 16);
+
+    slave.onSet(HREG(0), [](TRegister* reg, uint16_t val) -> uint16_t {
+        int index = reg->address.address;
+        if (index < NUM_SERVOS) {
+            instance->servoMgr->setPosition(index, val);
+        }
+        return val;
+    }, NUM_SERVOS);
+
+    // Ignore writes to sensor registers
+    auto ignoreWrite = [](TRegister* reg, uint16_t val) -> uint16_t {
+        return instance->slave.Reg(reg->address);
+    };
+    slave.onSet(HREG(TEMP_REG_ADDR), ignoreWrite, 1);
+    slave.onSet(HREG(HUMIDITY_REG_ADDR), ignoreWrite, 1);
+    slave.onSet(HREG(PRESSURE_REG_ADDR), ignoreWrite, 1);
+    slave.onSet(HREG(ALTITUDE_REG_ADDR), ignoreWrite, 1);
+
     initialized = true;
     return true;
 }
@@ -27,56 +56,19 @@ bool ModbusHandler::init() {
 void ModbusHandler::task() {
     if (!initialized) return;
 
-    uint8_t result = slave.poll();
-    if (result == 0) {
-        // Handle successful poll, update from/to buffers
-        // Sync coils to relays
-        for (int i = 0; i < NUM_RELAYS; i++) {
-            bool newState = slave.Coil(0 + i);
-            if (newState != coilStates[i]) {
-                coilStates[i] = newState;
-                relayMgr->setRelay(i, newState);
-            }
-        }
+    slave.task();
 
-        // Sync holding regs to servos
-        for (int i = 0; i < NUM_SERVOS; i++) {
-            uint16_t regValue = slave.Hreg(SERVO_REG_START_ADDR + i);
-            if (regValue != holdingRegs[SERVO_REG_START_ADDR + i]) {
-                holdingRegs[SERVO_REG_START_ADDR + i] = regValue;
-                servoMgr->setPosition(i, regValue);
-            }
-        }
-
-        // Update sensor data periodically
-        if (millis() - lastSensorRead > SENSOR_READ_INTERVAL_MS) {
-            updateSensorData();
-            lastSensorRead = millis();
-        }
-
-        // Sync sensor data to holding regs
+    // Update sensor data periodically
+    if (millis() - lastSensorRead > SENSOR_READ_INTERVAL_MS) {
         float temp, hum, press, alt;
         if (sensor->readSensor(temp, hum, press, alt)) {
-            holdingRegs[TEMP_REG_ADDR] = (uint16_t)(temp * 10);  // x10 for precision
-            holdingRegs[HUMIDITY_REG_ADDR] = (uint16_t)(hum * 10);
-            holdingRegs[PRESSURE_REG_ADDR] = (uint16_t)(press);
-            holdingRegs[ALTITUDE_REG_ADDR] = (uint16_t)(alt * 100);  // x100 for precision
-            slave.Hreg(TEMP_REG_ADDR, holdingRegs[TEMP_REG_ADDR]);
-            slave.Hreg(HUMIDITY_REG_ADDR, holdingRegs[HUMIDITY_REG_ADDR]);
-            slave.Hreg(PRESSURE_REG_ADDR, holdingRegs[PRESSURE_REG_ADDR]);
-            slave.Hreg(ALTITUDE_REG_ADDR, holdingRegs[ALTITUDE_REG_ADDR]);
+            slave.Reg(HREG(TEMP_REG_ADDR), (uint16_t)(temp * 10));
+            slave.Reg(HREG(HUMIDITY_REG_ADDR), (uint16_t)(hum * 10));
+            slave.Reg(HREG(PRESSURE_REG_ADDR), (uint16_t)(press));
+            slave.Reg(HREG(ALTITUDE_REG_ADDR), (uint16_t)(alt * 100));
         }
+        lastSensorRead = millis();
     }
 }
 
-void ModbusHandler::updateSensorData() {
-    // This is called in task, but can be expanded if needed
-}
 
-void ModbusHandler::preTransmission() {
-    digitalWrite(MODBUS_UART_TX_PIN, HIGH);  // Enable RS485 DE/RE if using
-}
-
-void ModbusHandler::postTransmission() {
-    digitalWrite(MODBUS_UART_TX_PIN, LOW);   // Disable RS485 DE/RE
-}

@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include "ServoManager.h"
 
 ServoManager::ServoManager() : initialized(false) {
