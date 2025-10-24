@@ -13,7 +13,7 @@ ModbusHandler modbus(&servoMgr, &relayMgr, &sensor);
 unsigned long lastBlinkTime = 0;
 bool ledState = false;
 void setup() {
-    Serial.begin(115200);
+    Serial.begin(MODBUS_BAUD_RATE);
     while (!Serial) {
         ; // Wait for serial port to connect
     }
@@ -33,7 +33,7 @@ void setup() {
     }
 
     Serial.println("Initialization complete.");
-    pinMode(LED_BUILTIN, OUTPUT);
+    pinMode(25, OUTPUT);
 }
 
 void loop() {
@@ -42,8 +42,9 @@ void loop() {
     if (millis() - lastBlinkTime >= 100) {
         lastBlinkTime = millis();
         ledState = !ledState;
-        digitalWrite(LED_BUILTIN, ledState);
+        digitalWrite(25, ledState);
     }
+
 
     delay(10);  //100Hz loop rate
 }

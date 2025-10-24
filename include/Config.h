@@ -14,12 +14,12 @@
 #define BME280_I2C_ADDRESS 0x76  // Default address, change to 0x77 if SDO pin is high
 
 // Servo Configuration
-#define NUM_SERVOS 5
-const int SERVO_PINS[NUM_SERVOS] = {6, 7, 8, 9, 10};
+#define NUM_SERVOS 3
+const int SERVO_PINS[NUM_SERVOS] = {6, 7, 8};
 
 // Relay Configuration
-#define NUM_RELAYS 16
-const int RELAY_PINS[NUM_RELAYS] = {11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26};
+#define NUM_RELAYS 4
+const int RELAY_PINS[NUM_RELAYS] = {11, 12, 13, 14};
 
 // Application Configuration
 #define SENSOR_READ_INTERVAL_MS 5000  // Read sensor every 5 seconds

@@ -13,6 +13,7 @@ class ModbusHandler {
 private:
     static ModbusHandler* instance;
     ModbusRTU slave;
+    ModbusRTU usbSlave;
     ServoManager* servoMgr;
     RelayManager* relayMgr;
     BME280Reader* sensor;
