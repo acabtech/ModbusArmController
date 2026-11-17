@@ -10,8 +10,15 @@ ServoManager::~ServoManager() {
 
 bool ServoManager::init() {
     for (int i = 0; i < NUM_SERVOS; i++) {
-        if (!servos[i].attach(SERVO_PINS[i])) {
+        // attach() returns the channel number (0 for the first servo) on
+        // success and INVALID_SERVO (255) on failure, so it must not be
+        // used as a boolean -- otherwise the first servo aborts init().
+        if (servos[i].attach(SERVO_PINS[i]) == INVALID_SERVO) {
             // Log error if needed
+            // Roll back any servos already attached in this attempt.
+            for (int j = 0; j < i; j++) {
+                servos[j].detach();
+            }
             return false;
         }
         servos[i].write(SERVO_DEFAULT_POSITION);
