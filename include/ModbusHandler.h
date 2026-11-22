@@ -18,7 +18,7 @@ private:
     RelayManager* relayMgr;
     BME280Reader* sensor;
     uint16_t holdingRegs[20];  // Buffer for holding registers (e.g., servos 0-4, sensors 10-13)
-    bool coilStates[16];       // Buffer for coils (relays 0-15)
+    bool coilStates[NUM_RELAYS];       // Buffer for coils (relays)
     unsigned long lastSensorRead;
     bool initialized;
 

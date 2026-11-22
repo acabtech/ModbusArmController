@@ -27,7 +27,7 @@ const int RELAY_PINS[NUM_RELAYS] = {11, 12, 13, 14};
 #define RELAY_SAFE_STATE LOW          // Off state for relays
 
 // Modbus Register and Coil Addresses (0-based indexing for internal use)
-#define RELAY_COIL_START_ADDR 0       // Coils 0-15 for relays
+#define RELAY_COIL_START_ADDR 0       // Relay coils starting address
 #define SERVO_REG_START_ADDR 0        // Holding registers 0-4 for servo positions (0-180 degrees)
 #define TEMP_REG_ADDR 10              // Holding register 10: Temperature (x10 for integer)
 #define HUMIDITY_REG_ADDR 11          // Holding register 11: Humidity (x10)

@@ -10,7 +10,7 @@ ModbusHandler::ModbusHandler(ServoManager* sm, RelayManager* rm, BME280Reader* s
     for (int i = 0; i < 20; i++) {
         holdingRegs[i] = 0;
     }
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < NUM_RELAYS; i++) {
         coilStates[i] = false;
     }
 }
@@ -22,7 +22,7 @@ bool ModbusHandler::init() {
     Serial.begin(MODBUS_BAUD_RATE);
     usbSlave.begin(&Serial, -1);
     usbSlave.slave(MODBUS_SLAVE_ID);
-    usbSlave.addReg(COIL(0), (uint16_t)0, (uint16_t)16);
+    usbSlave.addReg(COIL(0), (uint16_t)0, (uint16_t)NUM_RELAYS);
     usbSlave.addReg(HREG(0), (uint16_t)0, (uint16_t)20);
 
     // Seed servo holding registers to the default position so a Modbus master
@@ -37,7 +37,7 @@ bool ModbusHandler::init() {
         bool state = val != 0;
         instance->relayMgr->setRelay(reg->address.address, state);
         return val;
-    }, 16);
+    }, NUM_RELAYS);
 
     usbSlave.onSet(HREG(0), [](TRegister* reg, uint16_t val) -> uint16_t {
         int index = reg->address.address;
@@ -62,7 +62,7 @@ bool ModbusHandler::init() {
     Serial1.begin(MODBUS_BAUD_RATE);
     slave.begin(&Serial1, MODBUS_DE_PIN, true);
     slave.slave(MODBUS_SLAVE_ID);
-    slave.addReg(COIL(0), (uint16_t)0, (uint16_t)16);
+    slave.addReg(COIL(0), (uint16_t)0, (uint16_t)NUM_RELAYS);
     slave.addReg(HREG(0), (uint16_t)0, (uint16_t)20);
 
     // Seed servo holding registers to the default position so a Modbus master
@@ -77,7 +77,7 @@ bool ModbusHandler::init() {
         bool state = val != 0;
         instance->relayMgr->setRelay(reg->address.address, state);
         return val;
-    }, 16);
+    }, NUM_RELAYS);
 
     slave.onSet(HREG(0), [](TRegister* reg, uint16_t val) -> uint16_t {
         int index = reg->address.address;
