@@ -4,8 +4,6 @@
 RelayManager::RelayManager() : initialized(false) {
     for (int i = 0; i < NUM_RELAYS; i++) {
         relayStates[i] = false;
-        pinMode(RELAY_PINS[i], OUTPUT);
-        digitalWrite(RELAY_PINS[i], RELAY_SAFE_STATE);
     }
 }
 
@@ -14,7 +12,11 @@ RelayManager::~RelayManager() {
 }
 
 bool RelayManager::init() {
-    // Pins already set in constructor
+    for (int i = 0; i < NUM_RELAYS; i++) {
+        pinMode(RELAY_PINS[i], OUTPUT);
+        digitalWrite(RELAY_PINS[i], RELAY_SAFE_STATE);
+        relayStates[i] = false;
+    }
     initialized = true;
     return true;
 }
