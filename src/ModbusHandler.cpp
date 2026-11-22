@@ -25,6 +25,13 @@ bool ModbusHandler::init() {
     usbSlave.addReg(COIL(0), (uint16_t)0, (uint16_t)16);
     usbSlave.addReg(HREG(0), (uint16_t)0, (uint16_t)20);
 
+    // Seed servo holding registers to the default position so a Modbus master
+    // reads a state that matches the hardware (servos are commanded to
+    // SERVO_DEFAULT_POSITION in ServoManager::init()).
+    for (int i = 0; i < NUM_SERVOS; i++) {
+        usbSlave.Reg(HREG(i), SERVO_DEFAULT_POSITION);
+    }
+
     // Callbacks for writes to relays and servos
     usbSlave.onSet(COIL(0), [](TRegister* reg, uint16_t val) -> uint16_t {
         bool state = val != 0;
@@ -36,6 +43,9 @@ bool ModbusHandler::init() {
         int index = reg->address.address;
         if (index < NUM_SERVOS) {
             instance->servoMgr->setPosition(index, val);
+            // Echo back the clamped value actually applied so the register
+            // reflects the real servo command, not the unclamped request.
+            return (uint16_t)constrain(val, 0, 180);
         }
         return val;
     }, NUM_SERVOS);
@@ -55,6 +65,13 @@ bool ModbusHandler::init() {
     slave.addReg(COIL(0), (uint16_t)0, (uint16_t)16);
     slave.addReg(HREG(0), (uint16_t)0, (uint16_t)20);
 
+    // Seed servo holding registers to the default position so a Modbus master
+    // reads a state that matches the hardware (servos are commanded to
+    // SERVO_DEFAULT_POSITION in ServoManager::init()).
+    for (int i = 0; i < NUM_SERVOS; i++) {
+        slave.Reg(HREG(i), SERVO_DEFAULT_POSITION);
+    }
+
     // Callbacks for writes to relays and servos
     slave.onSet(COIL(0), [](TRegister* reg, uint16_t val) -> uint16_t {
         bool state = val != 0;
@@ -66,6 +83,9 @@ bool ModbusHandler::init() {
         int index = reg->address.address;
         if (index < NUM_SERVOS) {
             instance->servoMgr->setPosition(index, val);
+            // Echo back the clamped value actually applied so the register
+            // reflects the real servo command, not the unclamped request.
+            return (uint16_t)constrain(val, 0, 180);
         }
         return val;
     }, NUM_SERVOS);
@@ -95,13 +115,16 @@ void ModbusHandler::task() {
         if (sensor->readSensor(temp, hum, press, alt)) {
             usbSlave.Reg(HREG(TEMP_REG_ADDR), (uint16_t)(temp * 10));
             usbSlave.Reg(HREG(HUMIDITY_REG_ADDR), (uint16_t)(hum * 10));
-            usbSlave.Reg(HREG(PRESSURE_REG_ADDR), (uint16_t)(press));
-            usbSlave.Reg(HREG(ALTITUDE_REG_ADDR), (uint16_t)(alt * 100));
+            // Pressure in Pa exceeds uint16_t (~101325 Pa > 65535), so publish
+            // hPa instead. Altitude in m*100 wraps above 655.35 m, so publish
+            // m*10 (decimetres). Both fit in a holding register.
+            usbSlave.Reg(HREG(PRESSURE_REG_ADDR), (uint16_t)(press / 100.0f));
+            usbSlave.Reg(HREG(ALTITUDE_REG_ADDR), (uint16_t)(alt * 10.0f));
 
             slave.Reg(HREG(TEMP_REG_ADDR), (uint16_t)(temp * 10));
             slave.Reg(HREG(HUMIDITY_REG_ADDR), (uint16_t)(hum * 10));
-            slave.Reg(HREG(PRESSURE_REG_ADDR), (uint16_t)(press));
-            slave.Reg(HREG(ALTITUDE_REG_ADDR), (uint16_t)(alt * 100));
+            slave.Reg(HREG(PRESSURE_REG_ADDR), (uint16_t)(press / 100.0f));
+            slave.Reg(HREG(ALTITUDE_REG_ADDR), (uint16_t)(alt * 10.0f));
         }
         lastSensorRead = millis();
     }

@@ -92,8 +92,8 @@ To configure:
     - Addresses 0-4: Servo positions (0-180°).
     - Address 10: Temperature (°C x10, e.g., 232 for 23.2°C).
     - Address 11: Humidity (% x10, e.g., 452 for 45.2%).
-    - Address 12: Pressure (Pa, integer).
-    - Address 13: Altitude (m x100, e.g., 1050 for 10.50m).
+    - Address 12: Pressure (hPa, integer).
+    - Address 13: Altitude (m x10, e.g., 105 for 10.50m).
     - 0x03 Read Holding Registers: Read servo positions or sensor data.
     - 0x06 Write Single Register: Set single servo position (0-180).
     - 0x10 Write Multiple Registers: Set multiple servo positions.
