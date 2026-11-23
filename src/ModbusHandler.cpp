@@ -113,18 +113,18 @@ void ModbusHandler::task() {
     if (millis() - lastSensorRead > SENSOR_READ_INTERVAL_MS) {
         float temp, hum, press, alt;
         if (sensor->readSensor(temp, hum, press, alt)) {
-            usbSlave.Reg(HREG(TEMP_REG_ADDR), (uint16_t)(temp * 10));
+            usbSlave.Reg(HREG(TEMP_REG_ADDR), (uint16_t)(int16_t)(temp * 10));
             usbSlave.Reg(HREG(HUMIDITY_REG_ADDR), (uint16_t)(hum * 10));
             // Pressure in Pa exceeds uint16_t (~101325 Pa > 65535), so publish
             // hPa instead. Altitude in m*100 wraps above 655.35 m, so publish
             // m*10 (decimetres). Both fit in a holding register.
             usbSlave.Reg(HREG(PRESSURE_REG_ADDR), (uint16_t)(press / 100.0f));
-            usbSlave.Reg(HREG(ALTITUDE_REG_ADDR), (uint16_t)(alt * 10.0f));
+            usbSlave.Reg(HREG(ALTITUDE_REG_ADDR), (uint16_t)(int16_t)(alt * 10.0f));
 
-            slave.Reg(HREG(TEMP_REG_ADDR), (uint16_t)(temp * 10));
+            slave.Reg(HREG(TEMP_REG_ADDR), (uint16_t)(int16_t)(temp * 10));
             slave.Reg(HREG(HUMIDITY_REG_ADDR), (uint16_t)(hum * 10));
             slave.Reg(HREG(PRESSURE_REG_ADDR), (uint16_t)(press / 100.0f));
-            slave.Reg(HREG(ALTITUDE_REG_ADDR), (uint16_t)(alt * 10.0f));
+            slave.Reg(HREG(ALTITUDE_REG_ADDR), (uint16_t)(int16_t)(alt * 10.0f));
         }
         lastSensorRead = millis();
     }
