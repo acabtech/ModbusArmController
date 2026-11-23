@@ -29,9 +29,9 @@ const int RELAY_PINS[NUM_RELAYS] = {11, 12, 13, 14};
 // Modbus Register and Coil Addresses (0-based indexing for internal use)
 #define RELAY_COIL_START_ADDR 0       // Relay coils starting address
 #define SERVO_REG_START_ADDR 0        // Holding registers 0-4 for servo positions (0-180 degrees)
-#define TEMP_REG_ADDR 10              // Holding register 10: Temperature (x10 for integer)
+#define TEMP_REG_ADDR 10              // Holding register 10: Temperature (int16_t, x10 for integer; signed, two's complement)
 #define HUMIDITY_REG_ADDR 11          // Holding register 11: Humidity (x10)
 #define PRESSURE_REG_ADDR 12          // Holding register 12: Pressure (hPa, integer)
-#define ALTITUDE_REG_ADDR 13          // Holding register 13: Altitude (m x10)
+#define ALTITUDE_REG_ADDR 13          // Holding register 13: Altitude (int16_t, m x10; signed, two's complement)
 
 #endif // CONFIG_H
