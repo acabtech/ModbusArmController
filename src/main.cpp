@@ -13,26 +13,18 @@ ModbusHandler modbus(&servoMgr, &relayMgr, &sensor);
 unsigned long lastBlinkTime = 0;
 bool ledState = false;
 void setup() {
-    Serial.begin(MODBUS_BAUD_RATE);
-    while (!Serial) {
-        ; // Wait for serial port to connect
-    }
-    Serial.println("Modbus Arm Controller Starting...");
+    // Debug logging over the USB CDC 'Serial' port is intentionally disabled:
+    // Serial is the USB Modbus RTU transport (initialized in
+    // ModbusHandler::init()). Human-readable output on that UART would corrupt
+    // Modbus frames, so init failures are not reported here. Startup also
+    // never blocks on the USB host being connected, so headless RS485
+    // deployments boot and run Modbus without a serial monitor.
 
-    if (!servoMgr.init()) {
-        Serial.println("ServoManager init failed");
-    }
-    if (!relayMgr.init()) {
-        Serial.println("RelayManager init failed");
-    }
-    if (!sensor.init()) {
-        Serial.println("BME280Reader init failed");
-    }
-    if (!modbus.init()) {
-        Serial.println("ModbusHandler init failed");
-    }
+    servoMgr.init();
+    relayMgr.init();
+    sensor.init();
+    modbus.init();
 
-    Serial.println("Initialization complete.");
     pinMode(25, OUTPUT);
 }
 
