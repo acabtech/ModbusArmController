@@ -128,15 +128,6 @@ void ModbusHandler::task() {
         }
         lastSensorRead = millis();
     }
-
-#ifdef DEBUG
-    while (Serial.available()) {
-        Serial.write(Serial.read());
-    }
-    while (Serial1.available()) {
-        Serial1.write(Serial1.read());
-    }
-#endif
 }
 
 
