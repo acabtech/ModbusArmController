@@ -9,7 +9,7 @@ Test individual classes in isolation. Create separate Arduino sketches or use a 
    - Init: Verify all servos attach to pins GP6-10; check failure if invalid pin.
    - setPosition: Test bounds (0-180° constrain), read back via getPosition.
    - setAllToDefault: All positions = 90°.
-   - Edge: Index out of bounds (0-4), destruct calls default.
+   - Edge: Index out of bounds (0-2), destruct calls default.
    - Mock: Use dummy Servo objects if no hardware.
 
 2. **RelayManager Tests** ([`include/RelayManager.h`](include/RelayManager.h)):
@@ -26,7 +26,7 @@ Test individual classes in isolation. Create separate Arduino sketches or use a 
    - Simulation: Mock Adafruit_BME280 with fixed values (e.g., 25°C, 50%, 1013hPa, 0m).
 
 4. **ModbusHandler Tests** ([`include/ModbusHandler.h`](include/ModbusHandler.h)):
-   - Init: Serial1 begin, slave setup with ID 1, add 20 Hregs/16 coils.
+   - Init: Serial1 begin, slave setup with ID 1, add real Hregs (servos 0-2, sensors 10-13) / relay coils.
    - task: Poll returns 0; sync coils to relays, regs to servos.
    - Sensor update: Every 5s, read and set Hregs 10-13.
    - pre/postTransmission: TX pin toggle (if RS485).
@@ -44,7 +44,7 @@ Test interactions between modules via Modbus commands. Use external Modbus maste
 
 2. **Modbus Holding Registers (Servos/Sensors)**:
    - Write reg 0 = 45 (0x06/0x10): Servo 0 to 45°, getPosition 45.
-   - Read regs 0-4: Current servo positions.
+   - Read regs 0-2: Current servo positions.
    - Read regs 10-13: Sensor values update every 5s; verify scaling (temp x10, etc.).
    - Write invalid (e.g., 200°): Constrained to 180°.
 

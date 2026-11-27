@@ -23,7 +23,8 @@ bool ModbusHandler::init() {
     usbSlave.begin(&Serial, -1);
     usbSlave.slave(MODBUS_SLAVE_ID);
     usbSlave.addReg(COIL(0), (uint16_t)0, (uint16_t)NUM_RELAYS);
-    usbSlave.addReg(HREG(0), (uint16_t)0, (uint16_t)20);
+    usbSlave.addReg(HREG(0), (uint16_t)0, (uint16_t)NUM_SERVOS);
+    usbSlave.addReg(HREG(TEMP_REG_ADDR), (uint16_t)0, (uint16_t)4);
 
     // Seed servo holding registers to the default position so a Modbus master
     // reads a state that matches the hardware (servos are commanded to
@@ -59,11 +60,14 @@ bool ModbusHandler::init() {
     usbSlave.onSet(HREG(PRESSURE_REG_ADDR), ignoreWrite, 1);
     usbSlave.onSet(HREG(ALTITUDE_REG_ADDR), ignoreWrite, 1);
 
+    Serial1.setTX(MODBUS_UART_TX_PIN);
+    Serial1.setRX(MODBUS_UART_RX_PIN);
     Serial1.begin(MODBUS_BAUD_RATE);
     slave.begin(&Serial1, MODBUS_DE_PIN, true);
     slave.slave(MODBUS_SLAVE_ID);
     slave.addReg(COIL(0), (uint16_t)0, (uint16_t)NUM_RELAYS);
-    slave.addReg(HREG(0), (uint16_t)0, (uint16_t)20);
+    slave.addReg(HREG(0), (uint16_t)0, (uint16_t)NUM_SERVOS);
+    slave.addReg(HREG(TEMP_REG_ADDR), (uint16_t)0, (uint16_t)4);
 
     // Seed servo holding registers to the default position so a Modbus master
     // reads a state that matches the hardware (servos are commanded to
@@ -115,15 +119,15 @@ void ModbusHandler::task() {
         if (sensor->readSensor(temp, hum, press, alt)) {
             usbSlave.Reg(HREG(TEMP_REG_ADDR), (uint16_t)(int16_t)(temp * 10));
             usbSlave.Reg(HREG(HUMIDITY_REG_ADDR), (uint16_t)(hum * 10));
-            // Pressure in Pa exceeds uint16_t (~101325 Pa > 65535), so publish
-            // hPa instead. Altitude in m*100 wraps above 655.35 m, so publish
-            // m*10 (decimetres). Both fit in a holding register.
-            usbSlave.Reg(HREG(PRESSURE_REG_ADDR), (uint16_t)(press / 100.0f));
+            // Adafruit_BME280::readPressure() returns hPa (~1013.25), which
+            // fits uint16_t directly (rounded). Altitude in m*10 (decimetres)
+            // also fits in a holding register.
+            usbSlave.Reg(HREG(PRESSURE_REG_ADDR), (uint16_t)(press + 0.5f));
             usbSlave.Reg(HREG(ALTITUDE_REG_ADDR), (uint16_t)(int16_t)(alt * 10.0f));
 
             slave.Reg(HREG(TEMP_REG_ADDR), (uint16_t)(int16_t)(temp * 10));
             slave.Reg(HREG(HUMIDITY_REG_ADDR), (uint16_t)(hum * 10));
-            slave.Reg(HREG(PRESSURE_REG_ADDR), (uint16_t)(press / 100.0f));
+            slave.Reg(HREG(PRESSURE_REG_ADDR), (uint16_t)(press + 0.5f));
             slave.Reg(HREG(ALTITUDE_REG_ADDR), (uint16_t)(int16_t)(alt * 10.0f));
         }
         lastSensorRead = millis();

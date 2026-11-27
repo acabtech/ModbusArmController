@@ -17,7 +17,7 @@ private:
     ServoManager* servoMgr;
     RelayManager* relayMgr;
     BME280Reader* sensor;
-    uint16_t holdingRegs[20];  // Buffer for holding registers (e.g., servos 0-4, sensors 10-13)
+    uint16_t holdingRegs[20];  // Scratch buffer (unused; library stores registers)
     bool coilStates[NUM_RELAYS];       // Buffer for coils (relays)
     unsigned long lastSensorRead;
     bool initialized;
