@@ -46,7 +46,7 @@ Configurations are centralized in [`include/Config.h`](include/Config.h) for eas
 - **Modbus Settings**:
   - Slave ID: Default 1 (change `MODBUS_SLAVE_ID`).
   - Baud Rate: Default 9600 (change `MODBUS_BAUD_RATE`).
-  - UART Pins: TX/RX on GP0/GP1 (modify `MODBUS_TX_PIN`, `MODBUS_RX_PIN`).
+  - UART Pins: TX/RX on GP0/GP1 (modify `MODBUS_UART_TX_PIN`, `MODBUS_UART_RX_PIN`).
 - **Hardware Pins**:
   - Servos: Array of pins `SERVO_PINS[] = {6,7,8,9,10}`.
   - Relays: Array of pins `RELAY_PINS[] = {11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26}`.
@@ -84,12 +84,12 @@ To configure:
 - **Slave ID**: 1 (configurable).
 - **Baud Rate/Format**: 9600, 8 data bits, No parity, 1 stop bit (8N1).
 - **Function Codes Supported**:
-  - **Coils (Relays, addresses 0-15)**:
+  - **Coils (Relays, addresses 0-3)**:
     - 0x01 Read Coils: Read relay states (ON=1/OFF=0).
     - 0x05 Write Single Coil: Set single relay (0xFF00=ON, 0x0000=OFF).
     - 0x0F Write Multiple Coils: Set multiple relays (bitmask).
   - **Holding Registers**:
-    - Addresses 0-4: Servo positions (0-180°).
+    - Addresses 0-2: Servo positions (0-180°).
     - Address 10: Temperature (°C x10, e.g., 232 for 23.2°C).
     - Address 11: Humidity (% x10, e.g., 452 for 45.2%).
     - Address 12: Pressure (hPa, integer).
@@ -159,7 +159,7 @@ RP2040 Pico Pins:
 - GP1: UART RX (Modbus from external master)
 - GP4: I2C SDA (BME280)
 - GP5: I2C SCL (BME280)
-- GP6-10: Servos 0-4 (PWM, signal wire)
+- GP6-8: Servos 0-2 (PWM, signal wire)
 - GP11-26: Relays 0-15 (Digital Out, active HIGH)
 - USB: Debug Serial (9600 baud, logging)
 ```
@@ -207,7 +207,7 @@ Example Workflow:
 - **Modbus**: Use Modbus Poll:
   - Read coils 0-15: Should return current relay states.
   - Write coil 5 ON: Verify relay activates.
-  - Read registers 0-4: Default 90.
+  - Read registers 0-2: Default 90.
   - Write register 2 to 180: Verify servo moves.
   - Read register 10: Valid temp after 5s (room ~23°C → 230).
 - **Sensor**: Wait 5s, read via Modbus; compare with multimeter or known values.
