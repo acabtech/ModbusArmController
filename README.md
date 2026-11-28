@@ -84,16 +84,18 @@ To configure:
 - **Slave ID**: 1 (configurable).
 - **Baud Rate/Format**: 9600, 8 data bits, No parity, 1 stop bit (8N1).
 - **Function Codes Supported**:
-  - **Coils (Relays, addresses 0-15)**:
+  - **Coils (Relays, addresses 0-3, `NUM_RELAYS`)**:
     - 0x01 Read Coils: Read relay states (ON=1/OFF=0).
     - 0x05 Write Single Coil: Set single relay (0xFF00=ON, 0x0000=OFF).
     - 0x0F Write Multiple Coils: Set multiple relays (bitmask).
+    - Writes to unmapped coil addresses return an illegal-address exception.
   - **Holding Registers**:
-    - Addresses 0-4: Servo positions (0-180°).
-    - Address 10: Temperature (°C x10, e.g., 232 for 23.2°C).
+    - Addresses 0-2: Servo positions (`NUM_SERVOS`, 0-180°).
+    - Address 10: Temperature (°C x10, signed int16 two's complement, e.g., 232 for 23.2°C, -52 for -5.2°C).
     - Address 11: Humidity (% x10, e.g., 452 for 45.2%).
     - Address 12: Pressure (hPa, integer).
-    - Address 13: Altitude (m x10, e.g., 105 for 10.50m).
+    - Address 13: Altitude (m x10, signed int16 two's complement / decimetres, e.g., 105 for 10.5m).
+    - Writes to unmapped holding register addresses return an illegal-address exception.
     - 0x03 Read Holding Registers: Read servo positions or sensor data.
     - 0x06 Write Single Register: Set single servo position (0-180).
     - 0x10 Write Multiple Registers: Set multiple servo positions.
