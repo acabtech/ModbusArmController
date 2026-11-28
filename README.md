@@ -13,8 +13,8 @@ A multifunction system based on Raspberry Pi Pico RP2040, implementing Modbus RT
 
 ## Pin Assignments
 Defined in [`include/Config.h`](include/Config.h:1):
-- **UART (Modbus RTU)**: TX = GP0, RX = GP1, Baud = 9600, 8N1
-- **I2C (BME280)**: SDA = GP4, SCL = GP5, Address = 0x76 (default; check your module)
+- **UART (Modbus RTU)**: TX = GP0, RX = GP1 (configured via `MODBUS_UART_TX_PIN`/`MODBUS_UART_RX_PIN`), Baud = 9600, 8N1
+- **I2C (BME280)**: SDA = GP4, SCL = GP5 (configured via `BME280_SDA_PIN`/`BME280_SCL_PIN`), Address = 0x76 (default; check your module)
 - **Servos**: GP6, GP7, GP8, GP9, GP10 (default position 90°)
 - **Relays**: GP11 to GP26 (active HIGH, safe state LOW/OFF)
 - **USB Serial (Debug)**: Default USB VCP at 9600 baud for logging and monitoring.
@@ -46,12 +46,12 @@ Configurations are centralized in [`include/Config.h`](include/Config.h) for eas
 - **Modbus Settings**:
   - Slave ID: Default 1 (change `MODBUS_SLAVE_ID`).
   - Baud Rate: Default 9600 (change `MODBUS_BAUD_RATE`).
-  - UART Pins: TX/RX on GP0/GP1 (modify `MODBUS_TX_PIN`, `MODBUS_RX_PIN`).
+  - UART Pins: TX/RX on GP0/GP1 (modify `MODBUS_UART_TX_PIN`, `MODBUS_UART_RX_PIN`).
 - **Hardware Pins**:
   - Servos: Array of pins `SERVO_PINS[] = {6,7,8,9,10}`.
   - Relays: Array of pins `RELAY_PINS[] = {11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26}`.
-  - I2C: SDA/SCL on GP4/GP5 (modify `I2C_SDA_PIN`, `I2C_SCL_PIN`).
-  - BME280 Address: Default 0x76 (change `BME280_ADDRESS` if 0x77).
+  - I2C: SDA/SCL on GP4/GP5 (modify `BME280_SDA_PIN`, `BME280_SCL_PIN`).
+  - BME280 Address: Default 0x76 (change `BME280_I2C_ADDRESS` if 0x77).
 - **Sensor Update Interval**: Default 5 seconds (change `SENSOR_UPDATE_INTERVAL_MS` in main loop).
 - **Servo Defaults**: Initial position 90° (midpoint); range constrained to 0-180°.
 

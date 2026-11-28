@@ -75,6 +75,8 @@ bool ModbusHandler::init() {
     usbSlave.onSet(HREG(PRESSURE_REG_ADDR), ignoreWrite, 1);
     usbSlave.onSet(HREG(ALTITUDE_REG_ADDR), ignoreWrite, 1);
 
+    Serial1.setTX(MODBUS_UART_TX_PIN);
+    Serial1.setRX(MODBUS_UART_RX_PIN);
     Serial1.begin(MODBUS_BAUD_RATE);
     slave.begin(&Serial1, MODBUS_DE_PIN, true);
     slave.slave(MODBUS_SLAVE_ID);

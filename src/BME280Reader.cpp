@@ -8,6 +8,8 @@ BME280Reader::~BME280Reader() {
 }
 
 bool BME280Reader::init() {
+    Wire.setSDA(BME280_SDA_PIN);
+    Wire.setSCL(BME280_SCL_PIN);
     Wire.begin();
     if (!bme.begin(BME280_I2C_ADDRESS)) {
         // Log error if needed

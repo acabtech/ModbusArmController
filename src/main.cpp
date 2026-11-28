@@ -14,8 +14,9 @@ unsigned long lastBlinkTime = 0;
 bool ledState = false;
 void setup() {
     Serial.begin(MODBUS_BAUD_RATE);
-    while (!Serial) {
-        ; // Wait for serial port to connect
+    uint32_t serialWaitStart = millis();
+    while (!Serial && (millis() - serialWaitStart < 3000)) {
+        ; // Wait briefly for serial port to connect; continue headless.
     }
     Serial.println("Modbus Arm Controller Starting...");
 
